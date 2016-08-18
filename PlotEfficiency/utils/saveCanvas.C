@@ -54,6 +54,15 @@ void saveCanvasIfMatch::operator()(TObject* obj)
 }
 
 /**
+ * Due to some -Wundefined-internal warnings when compiling with .L in the root interpreter I define this one-liner
+ * here that is then used below via std::bind.
+ */
+inline void updateDir(saveCanvasIfMatch& matcher, TDirectory* dir)
+{
+  matcher.setCurrentPath(dir);
+}
+
+/**
  * root entry point and "main" function.
  * Recurses over all TDirectories found in the file and runs the saveCanvasIfMatch.operator() on every TObject that
  * is not a TDirectory. (See general_helper.h for the definition of the recurseOnFile function for more info)
@@ -69,7 +78,10 @@ void saveCanvas(const std::string& filename, const std::string& canvasRgx)
   const std::regex rgx(canvasRgx);
   saveCanvasIfMatch canvasMatcher(rgx);
   canvasMatcher.setCurrentPath(file);
-  recurseOnFile(file, canvasMatcher, [&canvasMatcher](TDirectory* dir) { canvasMatcher.setCurrentPath(dir); });
+  // This mess with invoking std::bind and a one-line function defined above seems unnecessary, but when compiling
+  // via .L in the root interpreter, a version with a lambda instead rises a bunch of -Wundefined-internal warnings
+  // For some reason gcc works with the lambda without complaining, but cling does not
+  recurseOnFile(file, canvasMatcher, std::bind(updateDir, std::ref(canvasMatcher), std::placeholders::_1));
 }
 
 #ifndef __CINT__
