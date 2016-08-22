@@ -9,14 +9,14 @@ import subprocess
 import glob
 import re
 
-def saveCanvasOfFile(_file, _regex="fit_canvas"):
+def saveCanvasOfFile(_file, _regex="fit_canvas", _extension="pdf"):
     """
     Saves all the TCanvas found in the file matching the passed regex via a call to the saveCanvas exectuable
     """
     path_to_exe="/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/TnPfromJPsi/PlotEfficiency/utils/saveCanvas"
     DEVNULL = open(os.devnull, 'w') # needed to dump the output of TCanvas::Save into /dev/null
     print("Saving TCanvas matching \'{}\' from file \'{}\'".format(_regex, _file))
-    status = subprocess.call([path_to_exe, _file, _regex], stdout=DEVNULL, stderr=subprocess.STDOUT)
+    status = subprocess.call([path_to_exe, _file, _regex, _extension], stdout=DEVNULL, stderr=subprocess.STDOUT)
     return status
 
 
@@ -31,13 +31,13 @@ def commonFileNameCleanup(_filename, _ID, _scenario, _trigRgx):
     return fn
 
 
-def mvAndRename(_ID, _scenario, _targetdir="fitCanvasPdfs"):
+def mvAndRename(_ID, _scenario, _targetdir="fitCanvasPdfs", _extension="pdf"):
     """
     The output of saveCanvas is not that nice and has to be cleaned up.
     Mainly doing some replacing of the trigger parts and moving the created files to a separate directory
     """
     triggerRegex = re.compile('(_tag)?_Mu7p5_Track2_Jpsi(_(TK|MU)_pass_)?')
-    for filename in glob.glob(":tpTree:{}_{}*:*.pdf".format(_ID, _scenario)):
+    for filename in glob.glob(":tpTree:{}_{}*:*.{}".format(_ID, _scenario, _extension)):
         filenameTo = commonFileNameCleanup(filename, _ID, _scenario, triggerRegex)
         dirTo = "{}/{}_{}".format(_targetdir, _ID, _scenario)
         if not os.path.exists(dirTo):
@@ -46,7 +46,7 @@ def mvAndRename(_ID, _scenario, _targetdir="fitCanvasPdfs"):
         os.rename(filename, filenameTo)
 
 
-def mvAndRenamePt(_ID, _scenario, _file, _targetdir="fitCanvasPdfs"):
+def mvAndRenamePt(_ID, _scenario, _file, _targetdir="fitCanvasPdfs", _extension="pdf"):
     """
     The output of saveCanvas is not that nice and has to be cleaned up.
     Mainly doing some replacing of the trigger parts and moving the created files to a separate directory.
@@ -61,7 +61,7 @@ def mvAndRenamePt(_ID, _scenario, _file, _targetdir="fitCanvasPdfs"):
     addInfo = addInfo.replace("TnP_MuonID_","").replace("_data_all_", "").replace("_signal_mc_", "")
 
     triggerRegex = re.compile('(_tag)?_Mu7p5_Track2_Jpsi(_(TK|MU)_pass_)?')
-    for filename in glob.glob(":tpTree:{}_{}*:*.pdf".format(_ID, _scenario)):
+    for filename in glob.glob(":tpTree:{}_{}*:*.{}".format(_ID, _scenario, _extension)):
         filenameTo = commonFileNameCleanup(filename, _ID, _scenario, triggerRegex)
 
         dirTo = "{}/{}_{}_{}".format(_targetdir, _ID, _scenario, addInfo)
@@ -73,26 +73,31 @@ def mvAndRenamePt(_ID, _scenario, _file, _targetdir="fitCanvasPdfs"):
 
 def processAllFiles(_dir, _ID, _scenario,
                     _targetdir="fitCanvasPdfs",
-                    _canvasRegex="fit_canvas"):
+                    _canvasRegex="fit_canvas",
+                    _extension="pdf"):
     """
     Process all .root files matching the _ID AND _scenario in _dir.
     """
     os.chdir(_dir)
     for f in glob.glob("TnP_MuonID_*_{0}_{1}*.root".format(_ID, _scenario)):
-        saveCanvasOfFile(f, _canvasRegex)
+        saveCanvasOfFile(f, _canvasRegex, _extension)
         if "pt_abseta" in _scenario:
-            mvAndRenamePt(_ID, _scenario, f, _targetdir)
+            mvAndRenamePt(_ID, _scenario, f, _targetdir, _extension)
         else:
-            mvAndRename(_ID, _scenario, _targetdir)
+            mvAndRename(_ID, _scenario, _targetdir, _extension)
 
 
 # Define on what to run
 IDs = ["Loose2016", "Medium2016", "Tight2016", "Soft2016"]
 scenarios = ["eta", "vtx", "pt_abseta"]
-basedir="/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/mc_rootfiles"
-targetdir="/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/outputfiles/Figures/FitCanvasPdfs/mc"
+basedir="/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/data_rootfiles"
+targetdir="/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/outputfiles/Figures/FitCanvasPdfs/data"
+
+# pdf, ps and svg are currently working, png should too according to the ROOT documentation but doesn't at the moment
+# Workaround to get png is to save the plots as ps and convert them to png using gs
+plotformat="pdf"
 
 for ID in IDs:
     for scen in scenarios:
         print("Currently processing ID: {}, scenario: {}".format(ID, scen))
-        processAllFiles(basedir, ID, scen, targetdir, "fit_canvas")
+        processAllFiles(basedir, ID, scen, targetdir, "fit_canvas", plotformat)
