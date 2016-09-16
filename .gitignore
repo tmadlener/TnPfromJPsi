@@ -2,3 +2,7 @@
 
 # some executables
 PlotEfficiency/utils/saveCanvas
+
+# file endings to ignore
+*.root
+*.pkl

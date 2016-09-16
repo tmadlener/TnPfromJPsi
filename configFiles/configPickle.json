@@ -1,0 +1,45 @@
+{
+    "binnings" :
+    {
+        "eta" : [-2.4,-2.1,-1.6,-1.2,-0.9,-0.6,-0.3,-0.2,0.2,0.3,0.6,0.9,1.2,1.6,2.1,2.4],
+        "vtx" : [0.5,2.5,4.5,6.5,8.5,10.5,12.5,14.5,16.5,18.5,20.5,22.5,24.5,26.5,28.5,30.5],
+        "pt_abseta": [2.0, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 30.0, 40.0]
+    },
+
+    "input_files" :
+    {
+        "path" : "/afs/hephy.at/work/t/tmadlener/CMSSW_8_0_12/src/outputfiles/",
+        "files" : [
+            ["MuonID_Soft2016_vtx.root", "Soft", "vtx", ""],
+            ["MuonID_Soft2016_eta.root", "Soft", "eta", ""],
+            ["MuonID_Soft2016_pt_abseta0.root", "Soft", "pt_abseta", "abseta<0.9"],
+            ["MuonID_Soft2016_pt_abseta1.root", "Soft", "pt_abseta", "0.9<abseta<1.2"],
+            ["MuonID_Soft2016_pt_abseta2.root", "Soft", "pt_abseta", "1.2<abseta<2.1"],
+            ["MuonID_Soft2016_pt_abseta3.root", "Soft", "pt_abseta", "2.1<abseta<2.4"],
+
+            ["MuonID_Loose2016_vtx.root", "Loose", "vtx", ""],
+            ["MuonID_Loose2016_eta.root", "Loose", "eta", ""],
+            ["MuonID_Loose2016_pt_abseta0.root", "Loose", "pt_abseta", "abseta<0.9"],
+            ["MuonID_Loose2016_pt_abseta1.root", "Loose", "pt_abseta", "0.9<abseta<1.2"],
+            ["MuonID_Loose2016_pt_abseta2.root", "Loose", "pt_abseta", "1.2<abseta<2.1"],
+            ["MuonID_Loose2016_pt_abseta3.root", "Loose", "pt_abseta", "2.1<abseta<2.4"],
+
+            ["MuonID_Medium2016_vtx.root", "Medium", "vtx", ""],
+            ["MuonID_Medium2016_eta.root", "Medium", "eta", ""],
+            ["MuonID_Medium2016_pt_abseta0.root", "Medium", "pt_abseta", "abseta<0.9"],
+            ["MuonID_Medium2016_pt_abseta1.root", "Medium", "pt_abseta", "0.9<abseta<1.2"],
+            ["MuonID_Medium2016_pt_abseta2.root", "Medium", "pt_abseta", "1.2<abseta<2.1"],
+            ["MuonID_Medium2016_pt_abseta3.root", "Medium", "pt_abseta", "2.1<abseta<2.4"],
+
+            ["MuonID_Tight2016_vtx.root", "Tight", "vtx", ""],
+            ["MuonID_Tight2016_eta.root", "Tight", "eta", ""],
+            ["MuonID_Tight2016_pt_abseta0.root", "Tight", "pt_abseta", "abseta<0.9"],
+            ["MuonID_Tight2016_pt_abseta1.root", "Tight", "pt_abseta", "0.9<abseta<1.2"],
+            ["MuonID_Tight2016_pt_abseta2.root", "Tight", "pt_abseta", "1.2<abseta<2.1"],
+            ["MuonID_Tight2016_pt_abseta3.root", "Tight", "pt_abseta", "2.1<abseta<2.4"]
+        ]
+    },
+
+    "pickle_filename" : "test_pickle_file.pkl",
+    "root_output_filename" : "getEffTest.root"
+}
