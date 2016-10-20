@@ -6,3 +6,5 @@ PlotEfficiency/utils/saveCanvas
 # file endings to ignore
 *.root
 *.pkl
+*.pyc
+*.pdf
