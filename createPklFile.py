@@ -4,6 +4,8 @@ import pickle
 import json
 import argparse
 
+from PlotEfficiency.utils.TGA_utils import *
+
 """
 Definitions of helper functions
 """
@@ -17,37 +19,6 @@ def getBin(binning, x):
             return [binning[i], binning[i+1]]
 
     return[binning[-1], binning[0]]
-
-
-class TGAPoint:
-    """
-    simple struct storing all the information from a point in a TGraphAsymmErrors.
-    At the moment only errors in y-direction are stored
-    """
-    def __init__(self, x, y, eh, el):
-        """
-        construct from (x,y) coordinates and high and low error on y
-        """
-        self.x = x
-        self.y = y
-        self.eh_y = eh
-        self.el_y = el
-
-    def __str__(self):
-        """
-        Print point
-        """
-        return " x = {:6.4f}, y = {:6.4f} (+{:6.4f} -{:6.4f})".format(self.x, self.y, self.eh_y, self.el_y)
-
-
-def getPoint(graph, index):
-    """
-    get the point index from the passed graph
-    """
-    x = ROOT.Double(0)
-    y = ROOT.Double(0)
-    graph.GetPoint(index, x, y)
-    return TGAPoint(x, y, graph.GetErrorYhigh(index), graph.GetErrorYlow(index))
 
 
 def checkKeyPresent(d, key):
