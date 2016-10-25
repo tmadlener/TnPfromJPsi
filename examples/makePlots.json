@@ -1,0 +1,28 @@
+{
+    "plotting_defaults":
+    {
+        "xlow": 1.0,
+        "xhigh": 41.0,
+        "elow": 0.0,
+        "ehigh": 1.1,
+        "rlow": 0.9,
+        "rhigh": 1.1,
+        "tleft": 0.43,
+        "tlow": 0.8,
+        "tright": 0.63,
+        "tup": 0.9,
+        "lright": 0.65,
+        "yOffset": 1.6
+    },
+
+    "file_endings": ["pdf"],
+    "input_path": "Results/",
+    "output_path": "Results/Figures/",
+    "input_files":
+    [
+        ["MuonID_Loose2016_vtx.root", "Loose ID", "number of vertices", "|#eta| < 2.4, p_{T} > 8 GeV/c",
+         {"xlow":0, "xhigh":31, "lright":0.56, "elow":0.75},
+         [0.5, 2.5, 4.5, 6.5, 8.5, 10.5, 12.5, 14.5, 16.5, 18.5, 20.5, 22.5, 24.5, 26.5, 28.5, 30.5]
+        ]
+    ]
+}

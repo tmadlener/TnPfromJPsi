@@ -1,10 +1,21 @@
+# emacs auto-saves
 **/#*
+.#*
 
 # some executables
 PlotEfficiency/utils/saveCanvas
+
+# config files used by me
+configFiles/
 
 # file endings to ignore
 *.root
 *.pkl
 *.pyc
 *.pdf
+
+# don't ignore root-files in the examples folder
+!examples/*.root
+
+# ignore everything that is created by running the examples
+Results/*

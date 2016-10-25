@@ -83,7 +83,7 @@ def processJsonFile(filename):
 
             ratioGraph = divideGraphs(dataGraph, mcGraph)
 
-            outfilename = "".join(["MuonID_", inp["ID"], "_", inp["scenario"], inp["outfile_add"], ".root"])
+            outfilename = "".join([inp["output_path"], "MuonID_", inp["ID"], "_", inp["scenario"], inp["outfile_add"], ".root"])
             outfile = r.TFile.Open(outfilename, "recreate")
             outfile.cd()
             dataGraph.SetName("DATA")

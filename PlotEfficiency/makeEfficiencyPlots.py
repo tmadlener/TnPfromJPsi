@@ -1,8 +1,17 @@
-import ROOT as r
 import argparse
 import json
 from copy import deepcopy
 from utils.structFromDict import *
+
+"""
+Arg parsing
+"""
+parser = argparse.ArgumentParser(description="This script can be used to produce plots from the root files produced with the extractPlots.py script")
+parser.add_argument("jsonFile", help="path to the json file containing the settings")
+args = parser.parse_args()
+
+# import ROOT after doing the argparsing, to not mess it up
+import ROOT as r
 
 def createFrame(pad, xlow, xhigh, ylow, yhigh, yOffset):
     """
@@ -136,14 +145,6 @@ r.gStyle.SetPadRightMargin(0.03)
 r.gStyle.SetPadTopMargin(0.09)
 r.gStyle.SetPadLeftMargin(2.0)
 r.gROOT.SetBatch()
-
-
-"""
-Arg parsing
-"""
-parser = argparse.ArgumentParser(description="This script can be used to produce plots from the root files produced with the extractPlots.py script")
-parser.add_argument("jsonFile", help="path to the json file containing the settings")
-args = parser.parse_args()
 
 
 """

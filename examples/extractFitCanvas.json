@@ -1,0 +1,12 @@
+{
+    "name_regex": "fit_canvas",
+    "file_extensions": ["pdf"],
+    "output_dir": "Results/Figures/FitCanvas/",
+
+    "input_path": "examples/",
+    "input_files" :
+    [
+        "TnP_MuonID__data_all__Loose2016_vtx.root",
+        "TnP_MuonID__signal_mc__Loose2016_vtx.root"
+    ]
+}

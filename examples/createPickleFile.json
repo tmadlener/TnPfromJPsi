@@ -1,0 +1,19 @@
+{
+    "binnings" :
+    {
+        "eta" : [-2.4,-2.1,-1.6,-1.2,-0.9,-0.6,-0.3,-0.2,0.2,0.3,0.6,0.9,1.2,1.6,2.1,2.4],
+        "vtx" : [0.5,2.5,4.5,6.5,8.5,10.5,12.5,14.5,16.5,18.5,20.5,22.5,24.5,26.5,28.5,30.5],
+        "pt_abseta": [2.0, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 30.0, 40.0]
+    },
+
+    "input_files" :
+    {
+        "path" : "Results/",
+        "files" : [
+            ["MuonID_Loose2016_vtx.root", "Loose", "vtx", ""]
+        ]
+    },
+
+    "pickle_filename" : "Results/example_Loose_vtx.pkl",
+    "root_output_filename" : "Results/example_Loose_vtx.root"
+}
