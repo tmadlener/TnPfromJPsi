@@ -49,7 +49,7 @@ class SaveCanvasIfMatch(object):
         necessary
         """
         if obj.InheritsFrom('TCanvas'):
-            if self.regex.match(obj.GetName()):
+            if self.regex.search(obj.GetName()):
                 # The TDirectory::GetPath() method returns in the format /file/on/disk:/path/in/file
                 path = self.currentPath.split(':')[1]
                 path = '/'.join((path.split('/')[2:])) # remove the /tpTree/ directory from the path
