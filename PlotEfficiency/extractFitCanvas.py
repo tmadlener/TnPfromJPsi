@@ -1,12 +1,7 @@
-import ROOT as r
 from utils.recurseTFile import recurseOnFile
 from utils.miscHelpers import *
 import re
-import json
-import argparse
 
-# Keep ROOT from polluting stdout with its info messages
-r.gROOT.ProcessLine("gErrorIgnoreLevel = 1001")
 
 def renameFit(plotName):
     """
@@ -75,58 +70,52 @@ def getOutputDir(filename, defaultdir):
     outdir = filename.replace("TnP_MuonID_","").replace("_data_all__", "").replace("_signal_mc__","").replace(".root", "")
     return '/'.join([defaultdir, outdir])
 
+
 """
 Setup arg parser
 """
+import argparse
+
 parser = argparse.ArgumentParser(description='This script saves all TCanvas that are stored in a root file')
-parser.add_argument('jsonFile', help='Path to the json file containing all configuration')
-parser.add_argument('-nr', '--name_regex', help='The regex that the name of a TCanvas has to match in order to be saved. Will override the one given in the input json file!')
+# parser.add_argument('jsonFile', help='Path to the json file containing all configuration')
+parser.add_argument('input_files', help='Input files to process',nargs='+')
+parser.add_argument('-nr', '--name_regex', default='fit_canvas',
+                    help='The regex that the name of a TCanvas has to match in order to be saved.')
 parser.add_argument('-f', '--file_extensions',
                     help='The file format for the output plots will override the one in the input json file!',
-                    nargs='*')
-parser.add_argument('-o', '--output_dir',
+                    nargs='+', default=['pdf'])
+parser.add_argument('-o', '--output_dir', default='FitCanvasOutput/',
                     help='The base directory under which all plots will be saved')
-parser.add_argument('-v', '--verbosity', default=1, help='In- or Decrease the amount of output to stdout (0 disables it completely, 1 prints some basic information)')
+parser.add_argument('-v', '--verbose', default=False, action='store_true',
+                    help='Enable verbose printing', dest='verbose')
 
-[args, leftovers] = parser.parse_known_args()
-
-"""
-Read JSON file
-"""
-with open(args.jsonFile, 'r') as f:
-    json = json.loads(f.read())
+args = parser.parse_args()
 
 
-# Check if the json arguments have been overriden by the command line
-if args.file_extensions is not None:
-    extensions = args.file_extensions
-else:
-    extensions = json["file_extensions"]
+# invoke root now to not mess with argparse
+import ROOT as r
+# Keep ROOT from polluting stdout with its info messages
+r.gROOT.ProcessLine("gErrorIgnoreLevel = 1001")
 
-if args.name_regex is not None:
-    nameRgx = args.name_regex
-else:
-    nameRgx = json["name_regex"]
 
-if args.output_dir is not None:
-    outdir = args.output_dir
-else:
-    outdir = json["output_dir"]
+extensions = args.file_extensions
+nameRgx = args.name_regex
+outdir = args.output_dir
+condMkDir(outdir)
 
-if args.verbosity > 0:
-    print('Saving extensions: {}'.format(', ').join(extensions))
+if args.verbose:
+    print('Saving extensions: {}'.format(', '.join(extensions)))
     print('Used regex to match canvas names: {}'.format(nameRgx))
     print('Saving to directory: {}'.format(outdir))
 
 
 for ext in extensions:
-    for fn in json["input_files"]:
+    for fn in args.input_files:
         canSaver = SaveCanvasIfMatch(nameRgx, ext, getOutputDir(fn, outdir))
-        filename = json["input_path"] + fn
-        if args.verbosity > 0:
-            print('Now processing {}'.format(filename))
+        if args.verbose:
+            print('Now processing {}'.format(fn))
 
-        f = r.TFile.Open(filename)
+        f = r.TFile.Open(fn)
         if f != None:
             recurseOnFile(f, canSaver, lambda o: canSaver.setPath(o))
         # else:
