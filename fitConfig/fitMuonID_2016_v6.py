@@ -140,16 +140,16 @@ tnpAnalyzerVars = cms.PSet(
     pt = cms.vstring("muon p_{T}", "0", "1000", "GeV/c"),
     eta = cms.vstring("muon #eta", "-2.5", "2.5", ""),
     abseta = cms.vstring("muon |#eta|", "0", "2.5", ""),
-    tag_pt = cms.vstring("Tag p_{T}", "0", "1000", "GeV/c"),
-    tag_abseta = cms.vstring("Tag |#eta|", "0", "2.5", ""),
+    # tag_pt = cms.vstring("Tag p_{T}", "0", "1000", "GeV/c"),
+    # tag_abseta = cms.vstring("Tag |#eta|", "0", "2.5", ""),
     tag_nVertices = cms.vstring("Number of vertices", "0", "999", ""),
 
-    pair_pt = cms.vstring("dimuon p_{T}", "0", "1000", "GeV/c"),
+    # pair_pt = cms.vstring("dimuon p_{T}", "0", "1000", "GeV/c"),
 
     pair_dphiVtxTimesQ = cms.vstring("q1 * (#phi1-#phi2)", "-6", "6", ""),
     pair_drM1   = cms.vstring("#Delta R(Station 1)", "-99999", "999999", "rad"),
-    pair_distM1 = cms.vstring("dist(Station 1)", "-99999", "999999", "cm"),
-    pair_dz = cms.vstring("dz","-5","5",""),
+    # pair_distM1 = cms.vstring("dist(Station 1)", "-99999", "999999", "cm"),
+    # pair_dz = cms.vstring("dz","-5","5",""),
     pair_probeMultiplicity = cms.vstring("multiplicity","0","99",""),
     dB = cms.vstring("dB", "-1000", "1000", ""),
     dzPV = cms.vstring("dzPV", "-1000", "1000", ""),
@@ -157,7 +157,7 @@ tnpAnalyzerVars = cms.PSet(
     tkTrackerLay = cms.vstring("track.hitPattern.trackerLayersWithMeasurement", "-1", "999", ""),
     tkValidPixelHits = cms.vstring("track.hitPattern.numberOfValidPixelHits", "-1", "999", ""), # unused?
     tkPixelLay = cms.vstring("track.hitPattern.pixelLayersWithMeasurement", "-1", "999", ""),
-    tkChi2 = cms.vstring("track.normalizedChi2", "-1", "999", ""),
+    # tkChi2 = cms.vstring("track.normalizedChi2", "-1", "999", ""),
     numberOfMatchedStations = cms.vstring("numberOfMatchedStations", "-1", "99", ""), # unused?
     glbChi2 = cms.vstring("global.normalizedChi2", "-9999", "9999", ""),
     glbValidMuHits = cms.vstring("globalTrack.numberOfValidMuonHits", "-1", "9999", ""), # unused?
@@ -171,16 +171,16 @@ tnpAnalyzerVars = cms.PSet(
     segmentCompatibility = cms.vstring("segmentCompatibility", "-1", "5", ""), # renamed in 2016 TnP
 
     # tracking efficiency
-    tk_deltaR   = cms.vstring("Match #Delta R",    "0", "1000", ""),
-    tk_deltaEta = cms.vstring("Match #Delta #eta", "0", "1000", ""),
+    # tk_deltaR   = cms.vstring("Match #Delta R",    "0", "1000", ""),
+    # tk_deltaEta = cms.vstring("Match #Delta #eta", "0", "1000", ""),
 
     # There is no problem by defining more variables and categories than are present in the TTree as long as they are not used in the Efficiency calculations.
     weight = cms.vstring("weight","0","10","")
 )
 
 tnpAnalyzerCats = cms.PSet(
-    TM   = cms.vstring("Tracker muon", "dummy[pass=1,fail=0]"),
-    TMA   = cms.vstring("Tracker muon", "dummy[pass=1,fail=0]"),
+    # TM   = cms.vstring("Tracker muon", "dummy[pass=1,fail=0]"),
+    # TMA   = cms.vstring("Tracker muon", "dummy[pass=1,fail=0]"),
     Glb   = cms.vstring("Global", "dummy[pass=1,fail=0]"),
     Loose   = cms.vstring("Loose", "dummy[pass=1,fail=0]"),
     VBTF  = cms.vstring("VBTFLike", "dummy[pass=1,fail=0]"),
@@ -202,43 +202,43 @@ tnpAnalyzerCats = cms.PSet(
     Mu7p5_L2Mu2_Jpsi_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     tag_Mu7p5_L2Mu2_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     Mu7p5_L2Mu2_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    # Onia triggers
-    Dimuon16_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Dimuon10_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # # Onia triggers
+    # Dimuon16_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Dimuon10_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # #
+    # Mu_L3 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+
+    # # vertexing efficiency
+    # Dimuon6_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Dimuon6_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Dimuon0er16_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Dimuon0er16_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Dimuon16_Jpsi = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Dimuon10_Jpsi_Barrel = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     #
-    Mu_L3 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    #
-    # vertexing efficiency
-    Dimuon6_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Dimuon6_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Dimuon0er16_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Dimuon0er16_Jpsi_NoVertexing = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Dimuon16_Jpsi = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Dimuon10_Jpsi_Barrel = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    #
-    mcTrue = cms.vstring("MC true", "dummy[true=1,false=0]"),
-    # test
-    DoubleMu17TkMu8_TkMu8leg = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_DoubleMu17TkMu8_TkMu8leg = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # mcTrue = cms.vstring("MC true", "dummy[true=1,false=0]"),
+    # # test
+    # DoubleMu17TkMu8_TkMu8leg = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_DoubleMu17TkMu8_TkMu8leg = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     Mu8 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     tag_Mu8 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    # Mu25
-    Mu25TkMu0Onia_TM = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Mu25TkMu0Onia_L3_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    # Mu16
-    Mu16TkMu0Onia_TM = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Mu16TkMu0Onia_L3_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # # Mu25
+    # Mu25TkMu0Onia_TM = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu25TkMu0Onia_L3_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # # Mu16
+    # Mu16TkMu0Onia_TM = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu16TkMu0Onia_L3_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
 )
 
 tnpAnalyzerExprs = cms.PSet(
     Loose2015Var = cms.vstring("Loose2015Var", "PF==1", "PF"),
-     Loose2016Var = cms.vstring("Loose2016Var", "Loose == 1", "Loose"), # Loose is present in TTrees! Doing it this way, in order to have a consistent definition of the IDs (cuts) below
-     Medium2016Var = cms.vstring("Medium2016Var", "Loose == 1 && tkHitFract > 0.49 && ((Glb == 1 && glbChi2 < 3 && chi2LocPos < 12. && tkKink < 20. && segmentCompatibility > 3.03) || segmentCompatibility > 0.451)",
-                                 "Loose", "tkHitFract", "Glb", "glbChi2", "chi2LocPos", "tkKink", "segmentCompatibility"),
-     Soft2016Var = cms.vstring("Soft2016Var", "TMOST == 1 && tkTrackerLay > 5 && tkPixelLay > 0 && abs(dzPV) < 20. && abs(dB) < 0.3",
-                               "TMOST", "tkTrackerLay", "tkPixelLay", "dzPV", "dB"),
-     Tight2016Var = cms.vstring("Tight2016Var", "Glb == 1 && PF == 1 && glbChi2 < 10 && glbValidMuHits > 0 && numberOfMatchedStations > 1 && dB < 0.2 && dzPV < 0.5 && tkValidPixelHits > 0 && tkTrackerLay > 5",
-                                "Glb", "PF", "glbChi2", "glbValidMuHits", "numberOfMatchedStations", "dB", "dzPV", "tkValidPixelHits", "tkTrackerLay")
+    Loose2016Var = cms.vstring("Loose2016Var", "Loose == 1", "Loose"), # Loose is present in TTrees! Doing it this way, in order to have a consistent definition of the IDs (cuts) below
+    Medium2016Var = cms.vstring("Medium2016Var", "Loose == 1 && tkHitFract > 0.49 && ((Glb == 1 && glbChi2 < 3 && chi2LocPos < 12. && tkKink < 20. && segmentCompatibility > 3.03) || segmentCompatibility > 0.451)",
+                                "Loose", "tkHitFract", "Glb", "glbChi2", "chi2LocPos", "tkKink", "segmentCompatibility"),
+    Soft2016Var = cms.vstring("Soft2016Var", "TMOST == 1 && tkTrackerLay > 5 && tkPixelLay > 0 && abs(dzPV) < 20. && abs(dB) < 0.3",
+                              "TMOST", "tkTrackerLay", "tkPixelLay", "dzPV", "dB"),
+    Tight2016Var = cms.vstring("Tight2016Var", "Glb == 1 && PF == 1 && glbChi2 < 10 && glbValidMuHits > 0 && numberOfMatchedStations > 1 && dB < 0.2 && dzPV < 0.5 && tkValidPixelHits > 0 && tkTrackerLay > 5",
+                               "Glb", "PF", "glbChi2", "glbValidMuHits", "numberOfMatchedStations", "dB", "dzPV", "tkValidPixelHits", "tkTrackerLay")
 )
 
 tnpAnalyzerCuts = cms.PSet(
