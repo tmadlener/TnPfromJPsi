@@ -8,10 +8,10 @@ cl_args.register('fileList', 'list.txt',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                  'File containing the list of files to process')
-cl_args.register('outputFile', 'tnp_results.root',
+cl_args.register('outputDir', '',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
-                 'Output file')
+                 'Output directory')
 cl_args.register('inputRgx', '',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
@@ -24,6 +24,14 @@ cl_args.register('scenario', 'data',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                  'scenario: data or MC')
+cl_args.register('ID', 'Soft2016',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                 'Muon ID to run')
+cl_args.register('binning', 'pt_abseta',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                 'Binning to run')
 
 cl_args.parseArguments()
 
@@ -37,6 +45,84 @@ def createInputFileList(fileList, nameRgx=''):
 
     prependXrd = lambda x : '/'.join(['root://cms-xrd-global.cern.ch', x]) if x.startswith('/store') else ':'.join(['file', x])
     return [prependXrd(f) for f in rawlist if re.search(nameRgx, f)]
+
+
+def sanitizeInputs(cl_args):
+    """
+    Chech if command-line inputs can be handled
+    """
+    def checkValid(arg, valid_args, argname=''):
+        if not arg in valid_args:
+            print('{} is \'{}\', but has to be one of the following: {}'.format(argname, arg, valid_args))
+
+    checkValid(cl_args.binning, ['eta', 'vtx', 'pt_abseta'], 'binning')
+    checkValid(cl_args.ID, ['Soft2016', 'Medium2016', 'Loose2016', 'Tight2016', 'Loose2015'], 'ID')
+
+
+def defineAndRunFitModule(process, **kwargs):
+    """
+    Define the fit module
+
+    kwargs:
+    - scenario
+    - ID
+    - name (i.e. binning)
+    - ptmin
+    - tagReq (tag requirement, string)
+    - probeReq (probe requirement, None, or string)
+    - UnbinnedVariables (cms.vstring)
+    """
+    ID = kwargs.pop('ID')
+    name = kwargs.pop('name')
+    scenario = kwargs.pop('scenario', 'data')
+
+    outdir = kwargs.pop('outdir', './')
+    if outdir and not outdir.endswith('/'): outdir += '/'
+
+    outputfile = '{}TnP_MuonID_{}_{}_{}.root'.format(outdir, scenario, ID, name)
+    print('Writing output to {} for ID \'{}\' on {} using binning \'{}\'.'.format(outputfile, ID, scenario, name))
+
+    module = process.TnP_MuonID.clone(
+        OutputFileName = cms.string(outputfile)
+    )
+
+    # binning = kwargs.pop('binning')
+    from binnings import getBinning
+    binning = getBinning(name)
+
+    den_binning = binning.clone()
+    ptmin = kwargs.pop('ptmin')
+
+    if hasattr(den_binning, 'pt'):
+        den_binning.pt = cms.vdouble(*[v for v in binning.pt if v >= ptmin])
+        if len(den_binning.pt) == 0:
+            raise RuntimeError('Make sure \'ptmin\' is less than at least one element of binning.pt')
+        if len(den_binning.pt) == 1: den_binning.pt = cms.vdouble(ptmin, den_binning.pt[0])
+
+    tagReq = kwargs.pop('tagReq') # fail if there is no tag requirement
+    setattr(den_binning, tagReq, cms.vstring('pass'))
+    print('Tag requirement: \'{}\''.format(tagReq))
+    probeReq = kwargs.pop('probeReq', None) # don't necessarily need a probe requirement
+    if probeReq is not None:
+        setattr(den_binning, probeReq, cms.vstring('pass'))
+        print('Probe requirement: \'{}\''.format(probeReq))
+    else:
+        print('No requirements on probe')
+
+
+    setattr(module.Efficiencies, '{}_{}'.format(ID, name),
+            cms.PSet(
+                EfficiencyCategoryAndState = cms.vstring(ID, 'above'),
+                UnbinnedVariables = kwargs.pop('UnbinnedVariables'),
+                BinnedVariables = den_binning,
+                BinToPDFmap = cms.vstring('signalPlusBkg')
+            ))
+
+    if (kwargs.pop('run', False)):
+        print('========== End of Definitions. Following is fitting output ==========\n\n')
+        setattr(process, 'TnP_MuonID_{}_{}'.format(ID, name), module)
+        setattr(process, 'run_{}_{}'.format(ID, name), cms.Path(module))
+
 
 
 # setup the rest
@@ -205,72 +291,14 @@ process.TnP_MuonID = tnpAnalyzerTmplt.clone(
 
 
 
-def defineAndRunFitModule(process, **kwargs):
-    """
-    Define the fit module
-
-    kwargs:
-    - scenario
-    - ID
-    - name
-    - binning (PSet)
-    - ptmin
-    - trigger (name)
-    - UnbinnedVariables (cms.vstring)
-    """
-    ID = kwargs.pop('ID')
-    name = kwargs.pop('name')
-
-    module = process.TnP_MuonID.clone(
-        OutputFileName = cms.string('TnP_MuonID_{}_{}_{}.root'.format(kwargs.pop('scenario'), ID, name))
-    )
-
-    binning = kwargs.pop('binning')
-    den_binning = binning.clone()
-    ptmin = kwargs.pop('ptmin')
-
-    if hasattr(den_binning, 'pt'):
-        den_binning.pt = cms.vdouble(*[v for v in binning.pt if v >= ptmin])
-        if len(den_binning.pt) == 0:
-            raise RuntimeError('Make sure \'ptmin\' is less than at least one element of binning.pt')
-        if len(den_binning.pt) == 1: den_binning.pt = cms.vdouble(ptmin, den_binning.pt[0])
-
-    den_forSoftID = den_binning.clone()
-    # den_withSoftID = den_binning.clone(TMOST = cms.vstring('pass'),
-    #                                    tkTrackerLay = cms.vint32(6, 18),
-    #                                    tkPixelLay = cms.vint32(1,5),
-    #                                    dzPV = cms.vdouble(-20, 20),
-    #                                    dB = cms.vdouble(-0.3, 0.3),
-    #                                    Track_HP = cms.vstring('pass'))
-    # den_forL1L2 = den_withSoftID.clone()
-
-    trigger = kwargs.pop('trigger')
-    setattr(den_forSoftID, 'tag_{}_MU'.format(trigger), cms.vstring('pass'))
-    setattr(den_forSoftID, '{}_TK'.format(trigger), cms.vstring('pass'))
-    # setattr(den_forL1L2, 'tag_{}_MU'.format(trigger), cms.vstring('pass'))
-    # setattr(den_forL1L2, '{}_TK'.format(trigger), cms.vstring('pass'))
-
-    setattr(module.Efficiencies, '{}_{}'.format(ID, name),
-            cms.PSet(
-                EfficiencyCategoryAndState = cms.vstring(ID, 'above'),
-                UnbinnedVariables = kwargs.pop('UnbinnedVariables'),
-                BinnedVariables = den_forSoftID,
-                BinToPDFmap = cms.vstring('signalPlusBkg')
-            ))
-
-    if (kwargs.pop('run', False)):
-        setattr(process, 'TnP_MuonID_{}_{}'.format(ID, name), module)
-        setattr(process, 'run_{}_{}'.format(ID, name), cms.Path(module))
-
-
-## import binning (defined in other file for better overview)
-from binnings import vtx_bins
-
 UnbinnedVariables = cms.vstring('mass') # for data
 if 'mc' in cl_args.scenario:
     UnbinnedVariables = cms.vstring('mass', 'weight')
 
 
-defineAndRunFitModule(process, ID='Soft2016', trigger='Mu7p5_Track2_Jpsi', ptmin=2,
-                      binning=vtx_bins, name='vtx', scenario=cl_args.scenario,
-                      UnbinnedVariables=UnbinnedVariables, run=True)
+defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
+                      # tagReq='tag_{}_MU'.format('Mu7p5_Track2_Jpsi'),
+                      # probeReq='{}_TK'.format('Mu7p5_Track2_Jpsi'),
+                      tagReq='tag_Mu8',
+                      name=cl_args.binning, scenario=cl_args.scenario,
+                      UnbinnedVariables=UnbinnedVariables, run=True, outdir=cl_args.outputDir)
