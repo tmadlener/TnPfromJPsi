@@ -35,6 +35,7 @@ cl_args.register('binning', 'pt_abseta',
 
 cl_args.parseArguments()
 
+
 def createInputFileList(fileList, nameRgx=''):
     """
     Create a sanitized list of files that can be passed ot the TagProbeFitTreeAnalyzer
@@ -70,7 +71,7 @@ def defineAndRunFitModule(process, **kwargs):
     - ptmin
     - tagReq (tag requirement, string)
     - probeReq (probe requirement, None, or string)
-    - UnbinnedVariables (cms.vstring)
+    - run (bool)
     """
     ID = kwargs.pop('ID')
     name = kwargs.pop('name')
@@ -86,7 +87,6 @@ def defineAndRunFitModule(process, **kwargs):
         OutputFileName = cms.string(outputfile)
     )
 
-    # binning = kwargs.pop('binning')
     from binnings import getBinning
     binning = getBinning(name)
 
@@ -109,11 +109,14 @@ def defineAndRunFitModule(process, **kwargs):
     else:
         print('No requirements on probe')
 
+    unbinnedVariables = cms.vstring('mass') # for data
+    if 'mc' in scenario:
+        unbinnedVariables = cms.vstring('mass', 'weight')
 
     setattr(module.Efficiencies, '{}_{}'.format(ID, name),
             cms.PSet(
                 EfficiencyCategoryAndState = cms.vstring(ID, 'above'),
-                UnbinnedVariables = kwargs.pop('UnbinnedVariables'),
+                UnbinnedVariables = unbinnedVariables,
                 BinnedVariables = den_binning,
                 BinToPDFmap = cms.vstring('signalPlusBkg')
             ))
@@ -290,15 +293,9 @@ process.TnP_MuonID = tnpAnalyzerTmplt.clone(
 )
 
 
-
-UnbinnedVariables = cms.vstring('mass') # for data
-if 'mc' in cl_args.scenario:
-    UnbinnedVariables = cms.vstring('mass', 'weight')
-
-
 defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
                       # tagReq='tag_{}_MU'.format('Mu7p5_Track2_Jpsi'),
                       # probeReq='{}_TK'.format('Mu7p5_Track2_Jpsi'),
                       tagReq='tag_Mu8',
                       name=cl_args.binning, scenario=cl_args.scenario,
-                      UnbinnedVariables=UnbinnedVariables, run=True, outdir=cl_args.outputDir)
+                      run=True, outdir=cl_args.outputDir)
