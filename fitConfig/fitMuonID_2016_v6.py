@@ -32,19 +32,29 @@ cl_args.register('binning', 'pt_abseta',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                  'Binning to run')
+cl_args.register('dryrun', False,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.bool,
+                 'Only define everything but do not run')
 
 cl_args.parseArguments()
 
+from binnings import getBinning
 
 def createInputFileList(fileList, nameRgx=''):
     """
     Create a sanitized list of files that can be passed ot the TagProbeFitTreeAnalyzer
     """
     import re
-    with open(fileList, 'r') as f:
-        rawlist = f.read().splitlines()
+    import os
+    if os.path.isfile(fileList):
+        with open(fileList, 'r') as f:
+            rawlist = f.read().splitlines()
+    else:
+        rawlist = ['/'.join([fileList, f]) for f in os.listdir(fileList) if os.path.isfile('/'.join([fileList, f]))]
 
     prependXrd = lambda x : '/'.join(['root://cms-xrd-global.cern.ch', x]) if x.startswith('/store') else ':'.join(['file', x])
+
     return [prependXrd(f) for f in rawlist if re.search(nameRgx, f)]
 
 
@@ -56,8 +66,10 @@ def sanitizeInputs(cl_args):
         if not arg in valid_args:
             print('{} is \'{}\', but has to be one of the following: {}'.format(argname, arg, valid_args))
 
-    checkValid(cl_args.binning, ['eta', 'vtx', 'pt_abseta'], 'binning')
     checkValid(cl_args.ID, ['Soft2016', 'Medium2016', 'Loose2016', 'Tight2016', 'Loose2015'], 'ID')
+
+    if getBinning(cl_args.binning) is None:
+        print('{} could not be parsed to get a valid binning'.format(cl_args.binning))
 
 
 def defineAndRunFitModule(process, **kwargs):
@@ -87,7 +99,6 @@ def defineAndRunFitModule(process, **kwargs):
         OutputFileName = cms.string(outputfile)
     )
 
-    from binnings import getBinning
     binning = getBinning(name)
 
     den_binning = binning.clone()
@@ -294,8 +305,8 @@ process.TnP_MuonID = tnpAnalyzerTmplt.clone(
 
 
 defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
-                      # tagReq='tag_{}_MU'.format('Mu7p5_Track2_Jpsi'),
-                      # probeReq='{}_TK'.format('Mu7p5_Track2_Jpsi'),
-                      tagReq='tag_Mu8',
+                      tagReq='tag_{}_MU'.format('Mu7p5_Track2_Jpsi'),
+                      probeReq='{}_TK'.format('Mu7p5_Track2_Jpsi'),
+                      # tagReq='tag_Mu8',
                       name=cl_args.binning, scenario=cl_args.scenario,
-                      run=True, outdir=cl_args.outputDir)
+                      run=not cl_args.dryrun, outdir=cl_args.outputDir)

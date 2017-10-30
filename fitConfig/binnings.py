@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
+import re
 
 _separated = cms.PSet(
     pair_drM1 = cms.vdouble(0.5, 10),
@@ -30,8 +31,41 @@ def getBinning(name):
     """
     Get the binning PSet corresponding to the passed name
     """
-    binningMap = {'eta': _eta_bins,
-                  'vtx': _vtx_bins,
-                  'pt_abseta': _pt_abseta_bins}
+    if name == 'eta': return _eta_bins
+    if name == 'vtx': return _vtx_bins
+    if name == 'pt_abseta': return _pt_abseta_bins
 
-    return binningMap[name]
+    def get_bins_from_name(name, binvar, bin_vector):
+        bin_rgx = r''.join([binvar, r'_([0-9]+)', r'_?([0-9]+)?'])
+        m = re.search(bin_rgx, name)
+        bin_inds = []
+        if m:
+            bin_inds = [int(i) for i in m.groups() if i is not None]
+        else:
+            print('not matched {} to {}'.format(bin_rgx, name))
+
+        if len(bin_inds) == 1: # only one bin
+            return cms.vdouble([bin_vector[bin_inds[0]], bin_vector[bin_inds[0] + 1]])
+
+        if len(bin_inds) == 2: # range of bins
+            bin_inds[-1] += 1 # use correct upper bound of last bin
+            return cms.vdouble([bin_vector[i] for i in range(bin_inds[0], bin_inds[1])])
+
+
+    if name.startswith('eta_'):
+        return _eta_bins.clone(eta = get_bins_from_name(name, 'eta', _eta_bins.eta))
+
+    if name.startswith('vtx_'):
+        return _vtx_bins.clone(tag_nVertices = get_bins_from_name(name, 'vtx', _vtx_bins.tag_nVertices))
+
+    if name.startswith('pt_abseta_'):
+        var_bins = _pt_abseta_bins.clone()
+        if 'pt' in name[len('pt_abseta_'):]:
+            var_bins.pt = get_bins_from_name(name, 'pt', _pt_abseta_bins.pt)
+
+        if 'abseta' in name[len('pt_abseta_'):]:
+            var_bins.abseta = get_bins_from_name(name, 'abseta', _pt_abseta_bins.abseta)
+
+        return var_bins
+
+    return None
