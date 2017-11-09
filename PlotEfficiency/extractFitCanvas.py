@@ -95,7 +95,8 @@ args = parser.parse_args()
 # invoke root now to not mess with argparse
 import ROOT as r
 # Keep ROOT from polluting stdout with its info messages
-r.gROOT.ProcessLine("gErrorIgnoreLevel = 1001")
+if not args.verbose:
+    r.gROOT.ProcessLine("gErrorIgnoreLevel = 1001")
 
 
 extensions = args.file_extensions

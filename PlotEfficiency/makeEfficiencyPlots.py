@@ -1,6 +1,8 @@
 import argparse
 import json
 from copy import deepcopy
+from random import choice
+from string import ascii_uppercase
 from utils.structFromDict import *
 
 """
@@ -90,7 +92,9 @@ def makePlot(dataGraph, mcGraph, ratioGraph, plotSet, title, xAxis, padText, bin
     Create and save the plot into each format that is demanded by the fileEndings parameter.
     The name of the output file(s) is simply the outfile_base + a file ending.
     """
-    canvas = r.TCanvas(outfile_base, "c", 500, 500) # using outfile_base here to avoid runtime-warnings
+    # Use randomly generated canvas name to avoid seg-faults and run-time warnings
+    canvas = r.TCanvas(''.join(choice(ascii_uppercase) for _ in range(6)), "c",
+                       500, 500)
     effPad = createPad("pad1", 0.3, 1)
 
     frame = createFrame(effPad, plotSet.xlow, plotSet.xhigh, plotSet.elow,
