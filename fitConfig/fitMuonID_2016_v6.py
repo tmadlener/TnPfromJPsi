@@ -36,6 +36,10 @@ cl_args.register('dryrun', False,
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.bool,
                  'Only define everything but do not run')
+cl_args.register('tag_mode', 'tag_Mu7p5',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                 'Mode to run, can be tag_Mu7p5 and tag_Mu8')
 
 cl_args.parseArguments()
 
@@ -60,16 +64,38 @@ def createInputFileList(fileList, nameRgx=''):
 
 def sanitizeInputs(cl_args):
     """
-    Chech if command-line inputs can be handled
+    Check if command-line inputs can be handled
     """
     def checkValid(arg, valid_args, argname=''):
         if not arg in valid_args:
             print('{} is \'{}\', but has to be one of the following: {}'.format(argname, arg, valid_args))
+            return False
 
-    checkValid(cl_args.ID, ['Soft2016', 'Medium2016', 'Loose2016', 'Tight2016', 'Loose2015'], 'ID')
+    if not checkValid(cl_args.ID, ['Soft2016', 'Medium2016', 'Loose2016', 'Tight2016', 'Loose2015'], 'ID'):
+        return False
 
     if getBinning(cl_args.binning) is None:
         print('{} could not be parsed to get a valid binning'.format(cl_args.binning))
+        return False
+    return True
+
+
+def getTagProbeRequirements(tag_mode):
+    """
+    Get the tag and probe requirements from the passed tag_mode
+    """
+    req = {}
+    if tag_mode == 'tag_Mu7p5':
+        req['tag'] = 'tag_{}_MU'.format('Mu7p5_Track2_Jpsi')
+        req['probe'] = '{}_TK'.format('Mu7p5_Track2_Jpsi'),
+    elif tag_mode == 'tag_Mu8':
+        req['tag'] = 'tag_Mu8'
+        req['probe'] = None
+    else:
+        print('Passed tag_mode \'{}\' is not valid'.format(tag_mode))
+
+    return req
+
 
 
 def defineAndRunFitModule(process, **kwargs):
@@ -88,6 +114,7 @@ def defineAndRunFitModule(process, **kwargs):
     ID = kwargs.pop('ID')
     name = kwargs.pop('name')
     scenario = kwargs.pop('scenario', 'data')
+    mode = kwargs.pop('tag_mode')
 
     outdir = kwargs.pop('outdir', './')
     if outdir and not outdir.endswith('/'): outdir += '/'
@@ -110,10 +137,12 @@ def defineAndRunFitModule(process, **kwargs):
             raise RuntimeError('Make sure \'ptmin\' is less than at least one element of binning.pt')
         if len(den_binning.pt) == 1: den_binning.pt = cms.vdouble(ptmin, den_binning.pt[0])
 
-    tagReq = kwargs.pop('tagReq') # fail if there is no tag requirement
+    tagProbeReqs = getTagProbeRequirements(mode)
+
+    tagReq = tagProbeReqs['tag'] # we fail here the latest if passed tag_mode was not valid
     setattr(den_binning, tagReq, cms.vstring('pass'))
     print('Tag requirement: \'{}\''.format(tagReq))
-    probeReq = kwargs.pop('probeReq', None) # don't necessarily need a probe requirement
+    probeReq = tagProbeReqs['probe']
     if probeReq is not None:
         setattr(den_binning, probeReq, cms.vstring('pass'))
         print('Probe requirement: \'{}\''.format(probeReq))
@@ -160,7 +189,7 @@ tnpAnalyzerVars = cms.PSet(
 
     # pair_pt = cms.vstring("dimuon p_{T}", "0", "1000", "GeV/c"),
 
-    pair_dphiVtxTimesQ = cms.vstring("q1 * (#phi1-#phi2)", "-6", "6", ""),
+    # pair_dphiVtxTimesQ = cms.vstring("q1 * (#phi1-#phi2)", "-6", "6", ""),
     pair_drM1   = cms.vstring("#Delta R(Station 1)", "-99999", "999999", "rad"),
     # pair_distM1 = cms.vstring("dist(Station 1)", "-99999", "999999", "cm"),
     # pair_dz = cms.vstring("dz","-5","5",""),
@@ -197,25 +226,25 @@ tnpAnalyzerCats = cms.PSet(
     # TMA   = cms.vstring("Tracker muon", "dummy[pass=1,fail=0]"),
     Glb   = cms.vstring("Global", "dummy[pass=1,fail=0]"),
     Loose   = cms.vstring("Loose", "dummy[pass=1,fail=0]"),
-    VBTF  = cms.vstring("VBTFLike", "dummy[pass=1,fail=0]"),
+    # VBTF  = cms.vstring("VBTFLike", "dummy[pass=1,fail=0]"),
     TMOST = cms.vstring("TMOneStationTight", "dummy[pass=1,fail=0]"),
     PF = cms.vstring("PF", "dummy[pass=1,fail=0]"),
-    Track_HP = cms.vstring("Track_HP", "dummy[pass=1,fail=0]"),
+    # Track_HP = cms.vstring("Track_HP", "dummy[pass=1,fail=0]"),
     Tight2012 = cms.vstring("Tight Id. Muon", "dummy[pass=1,fail=0]"),
-    Medium = cms.vstring("Medium Id. Muon", "dummy[pass=1,fail=0]"),
+    # Medium = cms.vstring("Medium Id. Muon", "dummy[pass=1,fail=0]"),
 
     # 2015 triggers
-    tag_Mu7p5_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu7p5_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     Mu7p5_Track2_Jpsi_TK = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     tag_Mu7p5_Track2_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Mu7p5_Track3p5_Jpsi_TK = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Mu7p5_Track3p5_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Mu7p5_Track7_Jpsi_TK = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Mu7p5_Track7_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Mu7p5_Track3p5_Jpsi_TK = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu7p5_Track3p5_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Mu7p5_Track7_Jpsi_TK = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu7p5_Track7_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     #
-    Mu7p5_L2Mu2_Jpsi_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    tag_Mu7p5_L2Mu2_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
-    Mu7p5_L2Mu2_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Mu7p5_L2Mu2_Jpsi_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # tag_Mu7p5_L2Mu2_Jpsi_MU = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
+    # Mu7p5_L2Mu2_L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     # # Onia triggers
     # Dimuon16_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
     # Dimuon10_L1L2 = cms.vstring("ProbeTrigger_Track0", "dummy[pass=1,fail=0]"),
@@ -245,7 +274,7 @@ tnpAnalyzerCats = cms.PSet(
 )
 
 tnpAnalyzerExprs = cms.PSet(
-    Loose2015Var = cms.vstring("Loose2015Var", "PF==1", "PF"),
+    # Loose2015Var = cms.vstring("Loose2015Var", "PF==1", "PF"),
     Loose2016Var = cms.vstring("Loose2016Var", "Loose == 1", "Loose"), # Loose is present in TTrees! Doing it this way, in order to have a consistent definition of the IDs (cuts) below
     Medium2016Var = cms.vstring("Medium2016Var", "Loose == 1 && tkHitFract > 0.49 && ((Glb == 1 && glbChi2 < 3 && chi2LocPos < 12. && tkKink < 20. && segmentCompatibility > 3.03) || segmentCompatibility > 0.451)",
                                 "Loose", "tkHitFract", "Glb", "glbChi2", "chi2LocPos", "tkKink", "segmentCompatibility"),
@@ -256,7 +285,7 @@ tnpAnalyzerExprs = cms.PSet(
 )
 
 tnpAnalyzerCuts = cms.PSet(
-    Loose2015 = cms.vstring("Loose2015", "Loose2015Var", "0.5"),
+    # Loose2015 = cms.vstring("Loose2015", "Loose2015Var", "0.5"),
     Loose2016 = cms.vstring("Loose2016", "Loose2016Var", "0.5"),
     Medium2016 = cms.vstring("Medium2016", "Medium2016Var", "0.5"),
     Soft2016 = cms.vstring("Soft2016", "Soft2016Var", "0.5"),
@@ -292,7 +321,6 @@ tnpAnalyzerTmplt = cms.EDAnalyzer('TagProbeFitTreeAnalyzer',
 
     Efficiencies = cms.PSet() # will be filled later
 )
-print('Analyzer defined')
 
 # create module and define it in process
 process.TnP_MuonID = tnpAnalyzerTmplt.clone(
@@ -304,9 +332,8 @@ process.TnP_MuonID = tnpAnalyzerTmplt.clone(
 )
 
 
-defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
-                      tagReq='tag_{}_MU'.format('Mu7p5_Track2_Jpsi'),
-                      probeReq='{}_TK'.format('Mu7p5_Track2_Jpsi'),
-                      # tagReq='tag_Mu8',
-                      name=cl_args.binning, scenario=cl_args.scenario,
-                      run=not cl_args.dryrun, outdir=cl_args.outputDir)
+if sanitizeInputs(cl_args):
+    defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
+                          tag_mode=cl_args.tag_mode,
+                          name=cl_args.binning, scenario=cl_args.scenario,
+                          run=not cl_args.dryrun, outdir=cl_args.outputDir)
