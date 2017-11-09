@@ -1,9 +1,46 @@
 import ROOT as r
 import json
 import argparse
+import re
+import sys
 from utils.TGA_utils import *
 
-def getGraphFromFile(infile, ID, scenario, canvasName, graphName="hxy_fit_eff"):
+def getCanvas(infile, dir_name, scenario, trigger):
+    """
+    Get the canvas on which the graph is stored
+    """
+    canv_dir = infile.Get(dir_name).Get('fit_eff_plots')
+    # first try if we can get it in a simple way
+    canv_name = getCanvasName(scenario, trigger).encode('ascii') # ascii encoding due to '&'
+    canvas = canv_dir.Get(canv_name)
+    if canvas:
+        return canvas
+
+    # if this fails, we ask for an input
+    print('Could not get the desired canvas from the file for scenario: {}'.format(scenario))
+    print('Requested name was {}'.format(canv_name))
+    key_names = [k.GetName() for k in canv_dir.GetListOfKeys()]
+    for (i, k) in enumerate(key_names):
+        print('[{}]: {}'.format(i, k))
+
+    while True:
+        inp = raw_input('Choose one of the following or \'q\' to quit: ')
+        if inp.upper() == 'Q':
+            sys.exit(1)
+        else:
+            try:
+                dec = int(inp)
+                if dec >= len(key_names): raise ValueError
+                break
+            except ValueError:
+                print('Enter number between 0 and {} or \'q\' to quit'.format(len(key_names) - 1))
+
+    canvas = canv_dir.Get(key_names[dec])
+    return canvas
+
+
+
+def getGraphFromFile(infile, ID, scenario, trigger, graphName="hxy_fit_eff"):
     """
     Get the efficiency TGraphAsymmErrors from the passed infile (i.e. TFileDirectory) by trying to find the
     subdirectory 'fit_eff_plots' in any subdirectory matching 'ID_scenario'.
@@ -12,19 +49,11 @@ def getGraphFromFile(infile, ID, scenario, canvasName, graphName="hxy_fit_eff"):
     dirMatchName = "_".join([ID, scenario])
     # print(dirMatchName)
 
-    keys = infile.GetListOfKeys()
-    nKeys = keys.GetEntries()
-    keyIter = keys.MakeIterator()
-
+    keys = [k.GetName() for k in infile.GetListOfKeys()]
     graph = None
-    for i in range(0, nKeys):
-        key = keyIter.Next()
-        dirName = key.GetName()
-
+    for dirName in keys:
         if dirMatchName in dirName:
-            canvasDir = infile.Get(dirName).Get("fit_eff_plots")
-            # print(canvasName)
-            canvas = canvasDir.Get(canvasName)
+            canvas = getCanvas(infile, dirName, scenario, trigger)
             graph = canvas.GetPrimitive(graphName)
 
     return graph
@@ -51,8 +80,15 @@ def getCanvasName(scenario, trigger, b="0"):
     else:
         prep = scenario
 
-    return "_".join([prep, "PLOT", trigger, "TK", "pass", "&", "tag", trigger, "MU", "pass"])
+    # for the pt_abseta scenario some more care has to be taken, since there are
+    # two binnings (pt, and abseta) in play and we are mainly interested in the pt dependency
+    if "pt_abseta_" in scenario:
+        bin_rgx = r'pt_abseta_([0-9])'
+        prep = re.sub(bin_rgx, r'pt_PLOT_abseta_bin\1', scenario)
+    else:
+        prep = '_'.join([prep, 'PLOT'])
 
+    return "_".join([prep, trigger, "TK", "pass", "&", "tag", trigger, "MU", "pass"])
 
 
 def processJsonFile(filename):
@@ -69,6 +105,8 @@ def processJsonFile(filename):
         """
         for inp in jsonInput["inputs"]:
             # print(inp)
+            print('Now processing:\ndata file: {}\n'
+                  'mc file: {}'.format(inp['data_file'], inp['mc_file']))
             dataFile = r.TFile.Open(inp["data_file"])
             dataDir = dataFile.GetDirectory(inp["basedir"])
             mcFile = r.TFile.Open(inp["mc_file"])
@@ -76,10 +114,11 @@ def processJsonFile(filename):
 
             ID = inp["ID"]
             scenario = inp["scenario"]
-            canvasName = getCanvasName(scenario, inp["trigger"]).encode('ascii')
-            dataGraph = getGraphFromFile(dataDir, ID, scenario, canvasName, "hxy_fit_eff")
+            dataGraph = getGraphFromFile(dataDir, ID, scenario, inp['trigger'], "hxy_fit_eff")
+            mcGraph = getGraphFromFile(mcDir, ID, scenario, inp['trigger'], "hxy_fit_eff")
+
             cleanUpGraph(dataGraph)
-            mcGraph = getGraphFromFile(mcDir, ID, scenario, canvasName, "hxy_fit_eff")
+            cleanUpGraph(mcGraph)
 
             ratioGraph = divideGraphs(dataGraph, mcGraph)
 
