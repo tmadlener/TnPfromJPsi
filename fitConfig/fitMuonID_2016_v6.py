@@ -36,7 +36,7 @@ cl_args.register('dryrun', False,
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.bool,
                  'Only define everything but do not run')
-cl_args.register('tag_mode', 'tag_Mu7p5',
+cl_args.register('tagMode', 'tag_Mu7p5',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                  'Mode to run, can be tag_Mu7p5 and tag_Mu8')
@@ -70,6 +70,7 @@ def sanitizeInputs(cl_args):
         if not arg in valid_args:
             print('{} is \'{}\', but has to be one of the following: {}'.format(argname, arg, valid_args))
             return False
+        return True
 
     if not checkValid(cl_args.ID, ['Soft2016', 'Medium2016', 'Loose2016', 'Tight2016', 'Loose2015'], 'ID'):
         return False
@@ -87,7 +88,7 @@ def getTagProbeRequirements(tag_mode):
     req = {}
     if tag_mode == 'tag_Mu7p5':
         req['tag'] = 'tag_{}_MU'.format('Mu7p5_Track2_Jpsi')
-        req['probe'] = '{}_TK'.format('Mu7p5_Track2_Jpsi'),
+        req['probe'] = '{}_TK'.format('Mu7p5_Track2_Jpsi')
     elif tag_mode == 'tag_Mu8':
         req['tag'] = 'tag_Mu8'
         req['probe'] = None
@@ -111,6 +112,8 @@ def defineAndRunFitModule(process, **kwargs):
     - probeReq (probe requirement, None, or string)
     - run (bool)
     """
+    print('Defining TagProbeFitAnalyzerTemplate')
+
     ID = kwargs.pop('ID')
     name = kwargs.pop('name')
     scenario = kwargs.pop('scenario', 'data')
@@ -177,7 +180,6 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.source = cms.Source('EmptySource')
 process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(1))
 
-print('Defining TagProbeFitAnalyzerTemplate')
 tnpAnalyzerVars = cms.PSet(
     mass = cms.vstring("Tag-muon Mass", "2.9", "3.3", "GeV/c^{2}"), #2.8-3.35
     pt = cms.vstring("muon p_{T}", "0", "1000", "GeV/c"),
@@ -334,6 +336,6 @@ process.TnP_MuonID = tnpAnalyzerTmplt.clone(
 
 if sanitizeInputs(cl_args):
     defineAndRunFitModule(process, ID=cl_args.ID, ptmin=2,
-                          tag_mode=cl_args.tag_mode,
+                          tag_mode=cl_args.tagMode,
                           name=cl_args.binning, scenario=cl_args.scenario,
                           run=not cl_args.dryrun, outdir=cl_args.outputDir)
